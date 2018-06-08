@@ -92,30 +92,36 @@ export default {
     async performQuery () {
       const loading = this.$loading.open({ container : this.$refs.preRef.$el })
       try {
-
         const queryResults = await this.mountQuery().limit(this.limit || 5).get()
         this.results = queryResults.docs.map(doc => ({ id: doc.id, ...doc.data() }))
       } catch (err) {
-        console.error(err)
-
         const { message } = err
 
-        const match = /(https?:\/\/[^ ]*)/
-        const indexUrl = message.match(match)[1]
+        if ( message.indexOf('index') !== -1 ) {
+          const match = /(https?:\/\/[^ ]*)/
+          const indexUrl = message.match(match)[1]
+          this.$snackbar.open({
+              message: 'This requires an index to be created.',
+              indefinite: true,
+              type: 'is-warning',
+              position: 'is-top',
+              actionText: 'Create index',
+              onAction () {
+                window.open(indexUrl, '_blank')
+              }
+          })
+        } else {
+          this.$toast.open({
+            message,
+            type: 'is-danger',
+            duration: 5000
+          })
+        }
 
-        this.$snackbar.open({
-            message: 'This requires an index to be created.',
-            indefinite: true,
-            type: 'is-warning',
-            position: 'is-top',
-            actionText: 'Create index',
-            onAction () {
-              window.open(indexUrl, '_blank')
-            }
-        })
+      } finally {
+        loading.close()
       }
 
-      loading.close()
     },
     async initializeApp () {
       if (apps.length) await this.app.delete()
