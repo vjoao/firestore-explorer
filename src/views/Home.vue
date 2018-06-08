@@ -28,7 +28,7 @@
           <option v-for="op in operators" :value="op" :key="op">{{ op }}</option>
         </b-select>
         <b-input type="string" placeholder="value" v-model="query.value"></b-input>
-        <button class="button" v-if="i > 0" @click="removeQuery(i)">X</button>
+        <button class="button mr-1" v-if="queries.length > 1" @click="removeQuery(i)">X</button>
         <button class="button" v-if="i === 0" @click="addQuery">Add</button>
       </b-field>
       <button class="button" @click="performQuery">Perform query</button>
@@ -152,5 +152,9 @@ export default {
     max-height: 600px;
     overflow-y: auto;
     white-space: pre-wrap!important;
+  }
+
+  .mr-1 {
+    margin-right: 1em
   }
 </style>
