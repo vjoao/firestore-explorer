@@ -93,7 +93,18 @@ export default {
       const loading = this.$loading.open({ container: this.$refs.preRef.$el })
       try {
         const queryResults = await this.mountQuery().limit(this.limit || 5).get()
-        this.results = queryResults.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        const rawResults = queryResults.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        this.results = rawResults.map(doc => {
+          const keys = Object.keys(doc)
+
+          keys.forEach(key => {
+            if (typeof doc[key].get === 'function' && typeof !!doc[key].path) {
+              doc[key] = doc[key].path
+            }
+          })
+
+          return doc
+        })
       } catch (err) {
         const { message } = err
 
