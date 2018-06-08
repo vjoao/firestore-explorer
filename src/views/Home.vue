@@ -1,46 +1,45 @@
 <template>
   <div class="container">
-    <hr>
-    <b-field grouped>
-      <b-field label="projectId">
-        <b-input type="string" v-model="projectId"></b-input>
+    <b-field grouped v-if="!app">
+      <hr>
+      <b-field>
+        <b-input type="string" v-model="projectId" placeholder="Project ID"></b-input>
       </b-field>
-      <b-field label="apiKey">
-        <b-input type="string" v-model="apiKey"></b-input>
+      <b-field>
+        <b-input type="string" v-model="apiKey" placeholder="API Key"></b-input>
       </b-field>
-    </b-field>
-    <hr>
-    <b-field grouped >
-      <b-field label="Collection">
-        <b-input type="string" placeholder="Collection" v-model="collection"></b-input>
-      </b-field>
-      <b-field label="Limit">
-        <b-input type="number" placeholder="Limit" v-model="limit"></b-input>
+      <b-field>
+        <button  @click="initializeApp" class="button">Initialize app</button>
       </b-field>
     </b-field>
-
-    <b-field grouped v-for="(query, i) in queries" :key="i">
-      <b-input type="string" placeholder="fieldPath" v-model="query.fieldPath"></b-input>
-      <b-select v-model="query.opStr" placeholder="operator">
-        <option value="==">==</option>
-        <option value=">=">>=</option>
-        <option value="<="><=</option>
-        <option value="<"><</option>
-        <option value=">">></option>
-      </b-select>
-      <b-input type="string" placeholder="value" v-model="query.value"></b-input>
-      <button v-if="i > 0" @click="removeQuery(i)">X</button>
-      <button v-if="i === 0" @click="addQuery">Add</button>
-    </b-field>
-    <button @click="performQuery">Perform query</button>
-    <pre class="display">{{ results | pretty }}</pre>
+    <div v-if="app">
+      <hr>
+      <b-field grouped>
+        <b-field label="Collection">
+          <b-input type="string" placeholder="Collection" v-model="collection"></b-input>
+        </b-field>
+        <b-field label="Limit">
+          <b-input type="number" placeholder="Limit" v-model="limit"></b-input>
+        </b-field>
+      </b-field>
+      <b-field grouped v-for="(query, i) in queries" :key="i">
+        <b-input type="string" placeholder="fieldPath" v-model="query.fieldPath"></b-input>
+        <b-select v-model="query.opStr" placeholder="operator">
+          <option v-for="op in operators" :value="op" :key="op">{{ op }}</option>
+        </b-select>
+        <b-input type="string" placeholder="value" v-model="query.value"></b-input>
+        <button class="button" v-if="i > 0" @click="removeQuery(i)">X</button>
+        <button class="button" v-if="i === 0" @click="addQuery">Add</button>
+      </b-field>
+      <button class="button" @click="performQuery">Perform query</button>
+      <hr>
+      <pre class="display" ref="preRef">{{ results | pretty }}</pre>
+    </div>
   </div>
 </template>
 
 <script>
-//ts-check
-
-import { firestore, initializeApp } from 'firebase'
+import { firestore, initializeApp, apps } from 'firebase'
 
 export default {
   name: 'home',
@@ -48,10 +47,12 @@ export default {
     queries: [],
     results: [],
     collection: '',
-    app: null,
+    app: apps[0],
     limit: 5,
     projectId: '',
-    apiKey: ''
+    apiKey: '',
+    operators: ['==', '>=', '>', '<=', '<'],
+    isLoading: false
   }),
   filters: {
     pretty (val) {
@@ -89,21 +90,42 @@ export default {
       }, firestore().collection(this.collection))
     },
     async performQuery () {
-      if(!this.app)
-        this.initializeApp()
+      const loading = this.$loading.open({ container : this.$refs.preRef.$el })
+      try {
 
-      const queryResults = await this.mountQuery().limit(this.limit || 5).get()
-      this.results = queryResults.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        const queryResults = await this.mountQuery().limit(this.limit || 5).get()
+        this.results = queryResults.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      } catch (err) {
+        console.error(err)
+
+        const { message } = err
+
+        const match = /(https?:\/\/[^ ]*)/
+        const indexUrl = message.match(match)[1]
+
+        this.$snackbar.open({
+            message: 'This requires an index to be created.',
+            indefinite: true,
+            type: 'is-warning',
+            position: 'is-top',
+            actionText: 'Create index',
+            onAction () {
+              window.open(indexUrl, '_blank')
+            }
+        })
+      }
+
+      loading.close()
     },
     async initializeApp () {
-      if (this.app) await this.app.delete()
+      if (apps.length) await this.app.delete()
 
       this.app = initializeApp({
         apiKey: this.apiKey,
         authDomain: `${this.projectId}.firebaseapp.com`,
         databaseURL: `https://${this.projectId}.firebaseio.com`,
         projectId: this.projectId,
-        storageBucket: `${this.projectId}.appspot.com`,
+        storageBucket: `${this.projectId}.appspot.com`
       })
     }
   }
