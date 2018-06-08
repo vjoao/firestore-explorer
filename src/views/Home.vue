@@ -9,7 +9,7 @@
         <b-input type="string" v-model="apiKey" placeholder="API Key"></b-input>
       </b-field>
       <b-field>
-        <button  @click="initializeApp" class="button">Initialize app</button>
+        <button :disabled="!projectId || !apiKey"  @click="initializeApp" class="button">Initialize app</button>
       </b-field>
     </b-field>
     <div v-if="app">
