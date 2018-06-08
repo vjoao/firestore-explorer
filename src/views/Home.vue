@@ -19,7 +19,7 @@
           <b-input type="string" placeholder="Collection" v-model="collection"></b-input>
         </b-field>
         <b-field label="Limit">
-          <b-input type="number" placeholder="Limit" v-model="limit"></b-input>
+          <b-input type="number" placeholder="Limit" v-model.number="limit"></b-input>
         </b-field>
       </b-field>
       <b-field grouped v-for="(query, i) in queries" :key="i">
