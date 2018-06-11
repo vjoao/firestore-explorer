@@ -5,6 +5,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
+    "pages": "npm run build && git subtree push --prefix dist origin gh-pages",
     "lint": "vue-cli-service lint",
     "test:unit": "vue-cli-service test:unit"
   },
