@@ -28,6 +28,10 @@
           <option v-for="op in operators" :value="op" :key="op">{{ op }}</option>
         </b-select>
         <b-input type="string" placeholder="value" v-model="query.value"></b-input>
+        as
+        <b-select v-model="query.type" placeholder="type">
+          <option v-for="type in types" :value="type" :key="type">{{ type }}</option>
+        </b-select>
         <button class="button mr-1" v-if="queries.length > 1" @click="removeQuery(i)">X</button>
         <button class="button" v-if="i === 0" @click="addQuery">Add</button>
       </b-field>
@@ -52,6 +56,7 @@ export default {
     projectId: '',
     apiKey: '',
     operators: ['==', '>=', '>', '<=', '<'],
+    types: ['string', 'number', 'boolean', 'date', 'null'],
     isLoading: false
   }),
   filters: {
@@ -78,15 +83,31 @@ export default {
       this.queries.push({
         fieldPath: '',
         opStr: '==',
-        value: ''
+        value: '',
+        type: 'string'
       })
     },
     removeQuery (i) {
       this.queries.splice(i, 1)
     },
+    getTypedQueryValue (value, type) {
+      if (type === 'number') {
+        return parseFloat(value)
+      } else if (type === 'boolean') {
+        return (value === 'true')
+      } else if (type === 'null') {
+        return null
+      } else if (type === 'date') {
+        return new Date(value)
+      }
+      return value
+    },
     mountQuery () {
       return this.queries.filter(q => q.fieldPath !== '').reduce((prev, curr) => {
-        return prev.where(curr.fieldPath, curr.opStr, curr.value)
+        const { value, type } = curr
+        let queryValue = this.getTypedQueryValue(value, type)
+
+        return prev.where(curr.fieldPath, curr.opStr, queryValue)
       }, firestore().collection(this.collection))
     },
     async performQuery () {
