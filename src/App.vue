@@ -1,6 +1,5 @@
 <template>
-<div class="hero container">
-  <br>
+<div class="hero container app-fe-root">
   <h2 class="title is-2">
     Firestore Explorer
   </h2>
@@ -9,5 +8,7 @@
 </template>
 
 <style lang="scss">
-
+  .app-fe-root {
+    padding-top: 1.5rem;
+  }
 </style>
