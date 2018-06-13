@@ -16,7 +16,7 @@
       <hr>
       <b-field grouped>
         <b-field label="Collection">
-          <b-input type="string" placeholder="Collection" v-model="collection"></b-input>
+          <b-input type="string" placeholder="collection/doc/subcollection" v-model="collection"></b-input>
         </b-field>
         <b-field label="Limit">
           <b-input type="number" placeholder="Limit" v-model.number="limit"></b-input>
