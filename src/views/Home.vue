@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <page-content title="Home">
     <b-field grouped v-if="!app">
       <hr>
       <b-field>
@@ -39,7 +39,7 @@
       <hr>
       <pre class="display" ref="preRef">{{ results | pretty }}</pre>
     </div>
-  </div>
+  </page-content>
 </template>
 
 <script>
